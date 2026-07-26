@@ -273,3 +273,7 @@ if __name__ == "__main__":
         print("Still not scheduled after 2 days:")
         for task in backlog_of_tasks:
             print(f"  - {task.name} (deferred {task.days_deferred}d)")
+
+
+# runtime is O(n^2 log n)
+# Space complexity is O(n)
