@@ -53,6 +53,19 @@ class Block:
         self.energy_level = energy_level 
         self.assigned = []  # list of assigned tasks scheduled in this block
 
+def ask_user_energy_level(prompt, low, high):
+    """ Asks user for whole integer between low and high. Reprompts for bad input"""
+    while True:
+        answer = input(prompt).strip()
+        if not answer.isdigit():
+            print(f"Please enter a positive whole number between {low} and {high}.")
+            continue
+        value = int(answer)
+        if value < low or value > high:
+            print(f"Please enter a positive whole number between {low} and {high}.")
+            continue
+        return value
+
 def daily_energy_budget(self_reported_energy):
     """
    Convert the 1-5 energy rating into a spendable budget, scaled to a real
