@@ -11,13 +11,9 @@ The algorithm handles tasks with different priorities with hard-deadline checks.
 from dataclasses import dataclass, field
 
 # Global Variables
-
-"""
-Promotion Treshold: Number of days after which a task is promoted to a higher priority / increased in priority. 
-Checks 2 days later to see if the task is still pending, if yes, it will be promoted to a higher priority. """
-PROMOTION_THRESHOLD = 2 
+PROMOTION_THRESHOLD = 1 # promote task one it has been deffered for full day
 FULL_DAY_BUDGET = 18 # total energy-cost of a realistic best (energy-5) day, from my own task load. 
-# This is calculated by assuming on the best day, I can do 18 units of work, which is the sum of the durations of all tasks (3 max effort tasks, and one or two small tasks) I can realistically complete in a day.
+                     # This is calculated by assuming on the best day, I can do 18 units of work, which is the sum of the durations of all tasks (3 max effort tasks, and one or two small tasks) I can realistically complete in a day.
 BUFFER = 0.8 # only schedule to 80% of the energy capacity to built-in headroom against overcommitment
 CAP_FRICTION = 0.5 # no single task can use more than half the day's budget
 DAY_HOURS = 14 # scheduling time window, 7am - 9pm 
@@ -159,7 +155,7 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
 
     # Defer whatever remaining leftover tasks to the next day, and increment their days_deferred counter. This is done after scheduling to ensure that any tasks that were not scheduled are carried over to the next day and their deferral count is updated.
     for task in remaining_tasks:
-        task.days_deferred += 1
+        task.days_deferred += 1 # TODO FIX bug here with the overflow tasks carrying into the next day
     return scheduled, remaining_tasks, budget, deadline_warnings # hands back your schedule of the day, remaining tasks, energy budget, and any deadline warnings for the day.
 
 # Method to print the daily schedule in a readable format, showing the day's name, energy levels, budget, and the tasks scheduled in each block. It also shows any leftover tasks that were not scheduled and any deadline warnings for tasks that are past their due date.
@@ -197,7 +193,7 @@ def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, 
     list, and the backlog. Display only - changes nothing about scheduling."""
     W = 57  # width of the divider lines
 
-    # --- header box ---
+    # header box 
     header = f"{day_name}  ·  energy {self_reported_energy.energy}/5  ·  budget {budget} pts  ·  {DAY_HOURS}h"
     print("\n╭" + "─" * W + "╮")
     print("  " + header)
@@ -211,26 +207,26 @@ def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, 
             names = ", ".join(task.name for task in block.assigned)
             print(f"   {block.label:<10} [energy {block.energy_level}]   {names}")
         else:
-            print(f"   {block.label:<10} [energy {block.energy_level}]   (open / rest)")
+            print(f"   {block.label:<10} [energy {block.energy_level}]   open / rest today")
 
     # --- priority-ordered list (scheduled is already in priority order) ---
     if scheduled:
-        print("\n  ⭐  BY PRIORITY (what mattered most)")
+        print("\n  ⭐ Sorting tasks by PRIORITY (what mattered most)")
         print("  " + "─" * (W - 2))
         for i, task in enumerate(scheduled, start=1):
             print(f"   {i}. {task.name:<22} (P{task.priority}, energy {task.energy_required})")
 
     # --- deadline warnings, if any ---
     if deadline_warnings:
-        print("\n  ⚠️  DEADLINE CONFLICT")
+        print("\n  ⚠️  Deadline conflicts (missed deadlines)")
         print("  " + "─" * (W - 2))
         for task in deadline_warnings:
             print(f"   • {task.name} is past its due date (day {task.deadline_day})")
 
     # --- backlog (didn't fit today) ---
     if leftover:
-        print("\n  📋  BACKLOG (didn't fit today → carry forward)")
-        print("  " + "─" * (W - 2))
+        print("\n  📋  BACKLOG (didn't fit today so carry forward)")
+        print("  " + "─" * (W - 2)) # draws a line between headers
         for task in leftover:
             promo = "  ← promoted" if task.days_deferred >= PROMOTION_THRESHOLD else ""
             print(f"   • {task.name:<22} (P{task.priority}, energy {task.energy_required}){promo}")
