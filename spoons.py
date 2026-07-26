@@ -163,35 +163,79 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
     return scheduled, remaining_tasks, budget, deadline_warnings # hands back your schedule of the day, remaining tasks, energy budget, and any deadline warnings for the day.
 
 # Method to print the daily schedule in a readable format, showing the day's name, energy levels, budget, and the tasks scheduled in each block. It also shows any leftover tasks that were not scheduled and any deadline warnings for tasks that are past their due date.
-def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, budget,
-              self_reported_energy, deadline_warnings):
-    print("=" * 55)
-    print(f"{day_name}:  (check-in: energy {self_reported_energy.energy})")
-    print(f"Daily effort budget: {budget} units of energy       | Time window: {DAY_HOURS} hours")
-    print("=" * 55)
+# def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, budget,
+#               self_reported_energy, deadline_warnings):
+#     print("=" * 55)
+#     print(f"{day_name}:  (check-in: energy {self_reported_energy.energy})")
+#     print(f"Daily effort budget: {budget} units of energy       | Time window: {DAY_HOURS} hours")
+#     print("=" * 55)
 
-    # Print the schedule for the day, showing which tasks were assigned to which blocks, and any leftover tasks that were not scheduled.
+#     # Print the schedule for the day, showing which tasks were assigned to which blocks, and any leftover tasks that were not scheduled.
+#     for block in work_blocks:
+#         if block.assigned:
+#             items = ", ".join(f"{task.name}(P{task.priority}/E{task.energy_required})" for task in block.assigned)
+#             print(f"  {block.label} [energy {block.energy_level}] -> {items}")
+#         else:
+#             print(f"  {block.label} [energy {block.energy_level}] -> (open / rest)")
+
+#     # Print any deadline warnings for tasks that were not scheduled and are past their due date.
+#     if deadline_warnings:
+#         print("\n  ** DEADLINE CONFLICT:")
+#         for task in deadline_warnings:
+#             print(f"     {task.name} is past its due date (day {task.deadline_day})")
+
+#     # Print any leftover tasks that were not scheduled, and indicate if they have been promoted due to being deferred too long.
+#     if leftover:
+#         print("\n  Rolled to tomorrow:")
+#         for task in leftover:
+#             promo = "  <-- PROMOTED (deferred too long)" if task.days_deferred >= PROMOTION_THRESHOLD else ""
+#             print(f"     {task.name} (deferred {task.days_deferred}d){promo}")
+#     print()
+def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, budget,
+                         self_reported_energy, deadline_warnings):
+    """Pretty terminal output: a header, a time-ordered agenda, a priority-ordered
+    list, and the backlog. Display only - changes nothing about scheduling."""
+    W = 57  # width of the divider lines
+
+    # --- header box ---
+    header = f"{day_name}  ·  energy {self_reported_energy.energy}/5  ·  budget {budget} pts  ·  {DAY_HOURS}h"
+    print("\n╭" + "─" * W + "╮")
+    print("  " + header)
+    print("╰" + "─" * W + "╯")
+
+    # --- time-ordered agenda (walk blocks in order) ---
+    print("\n  🕐  YOUR DAY (in order)")
+    print("  " + "─" * (W - 2))
     for block in work_blocks:
         if block.assigned:
-            items = ", ".join(f"{task.name}(P{task.priority}/E{task.energy_required})" for task in block.assigned)
-            print(f"  {block.label} [energy {block.energy_level}] -> {items}")
+            names = ", ".join(task.name for task in block.assigned)
+            print(f"   {block.label:<10} [energy {block.energy_level}]   {names}")
         else:
-            print(f"  {block.label} [energy {block.energy_level}] -> (open / rest)")
+            print(f"   {block.label:<10} [energy {block.energy_level}]   (open / rest)")
 
-    # Print any deadline warnings for tasks that were not scheduled and are past their due date.
+    # --- priority-ordered list (scheduled is already in priority order) ---
+    if scheduled:
+        print("\n  ⭐  BY PRIORITY (what mattered most)")
+        print("  " + "─" * (W - 2))
+        for i, task in enumerate(scheduled, start=1):
+            print(f"   {i}. {task.name:<22} (P{task.priority}, energy {task.energy_required})")
+
+    # --- deadline warnings, if any ---
     if deadline_warnings:
-        print("\n  ** DEADLINE CONFLICT:")
+        print("\n  ⚠️  DEADLINE CONFLICT")
+        print("  " + "─" * (W - 2))
         for task in deadline_warnings:
-            print(f"     {task.name} is past its due date (day {task.deadline_day})")
+            print(f"   • {task.name} is past its due date (day {task.deadline_day})")
 
-    # Print any leftover tasks that were not scheduled, and indicate if they have been promoted due to being deferred too long.
+    # --- backlog (didn't fit today) ---
     if leftover:
-        print("\n  Rolled to tomorrow:")
+        print("\n  📋  BACKLOG (didn't fit today → carry forward)")
+        print("  " + "─" * (W - 2))
         for task in leftover:
-            promo = "  <-- PROMOTED (deferred too long)" if task.days_deferred >= PROMOTION_THRESHOLD else ""
-            print(f"     {task.name} (deferred {task.days_deferred}d){promo}")
-    print()
+            promo = "  ← promoted" if task.days_deferred >= PROMOTION_THRESHOLD else ""
+            print(f"   • {task.name:<22} (P{task.priority}, energy {task.energy_required}){promo}")
 
+    print()
 
 if __name__ == "__main__":
     backlog_of_tasks = [
@@ -203,26 +247,56 @@ if __name__ == "__main__":
     ]
 
     # One day: today's energy check-in and the day's work blocks. The energy levels of the blocks are set to reflect the user's expected energy throughout the day, with higher energy levels in the morning and lower in the evening.
-    today_name = "Today"
-    checkin_today = CheckInEnergy(energy=4)
-    today_blocks = [
-        Block("Morning", energy_level=5),
-        Block("Afternoon", energy_level=4),
-        Block("Evening", energy_level=2),
+    # today_name = "Today"
+    # checkin_today = CheckInEnergy(energy=4)
+    # today_blocks = [
+    #     Block("Morning", energy_level=5),
+    #     Block("Afternoon", energy_level=4),
+    #     Block("Evening", energy_level=2),
+    # ]
+
+    # TWO DAYS
+    days = [
+        ("Day 1", CheckInEnergy(energy=4), [
+            Block("Morning", energy_level=3),
+            Block("Afternoon", energy_level=5),
+            Block("Evening", energy_level=4),
+        ]),
+        ("Day 2", CheckInEnergy(energy=2), [
+            Block("Morning", energy_level=5),
+            Block("Afternoon", energy_level=3),
+            Block("Evening", energy_level=1),
+        ]),
     ]
 
     # generate schedule, overflow, energy budget, warnings.
-    scheduled, leftover, budget, warnings = schedule_one_day(0, today_blocks, backlog_of_tasks, checkin_today)
+    # scheduled, leftover, budget, warnings = schedule_one_day(0, today_blocks, backlog_of_tasks, checkin_today)
 
-    # print schedule 
-    print_daily_schedule(today_name, 0, today_blocks, scheduled, leftover, budget, checkin_today, warnings)
+    # 2 days
+    for day_index, (name, checkin, blocks) in enumerate(days):
+        scheduled, backlog_of_tasks, budget, warnings = schedule_one_day(
+            day_index, blocks, backlog_of_tasks, checkin
+            )
+        # Print day 1 + 2
+        print_daily_schedule(name, day_index, blocks, scheduled, backlog_of_tasks,
+                             budget, checkin, warnings)
 
-    if leftover:
-        print("Still not scheduled by end of window:")
-        for task in leftover:
-            print(f"  - {task.name} (deferred {task.days_deferred}d). (energy {task.energy_required}, priority {task.priority})")
 
 
+    # print schedule day 1
+    #print_daily_schedule(today_name, 0, today_blocks, scheduled, leftover, budget, checkin_today, warnings)
+
+    # if leftover:
+    #     print("Still not scheduled by end of window:")
+    #     for task in leftover:
+    #         print(f"  - {task.name} (deferred {task.days_deferred}d). (energy {task.energy_required}, priority {task.priority})")
+
+
+    # Anything still unscheduled after both days.
+    if backlog_of_tasks:
+        print("Still not scheduled after 2 days:")
+        for task in backlog_of_tasks:
+            print(f"  - {task.name} (deferred {task.days_deferred}d)")
 
 
 
