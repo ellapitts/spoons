@@ -14,8 +14,8 @@ from dataclasses import dataclass, field
 PROMOTION_THRESHOLD = 1 # promote task one it has been deffered for full day
 FULL_DAY_BUDGET = 18 # total energy-cost of a realistic best (energy-5) day, from my own task load. 
                      # This is calculated by assuming on the best day, I can do 18 units of work, which is the sum of the durations of all tasks (3 max effort tasks, and one or two small tasks) I can realistically complete in a day.
-BUFFER = 0.8 # only schedule to 80% of the energy capacity to built-in headroom against overcommitment
-CAP_FRICTION = 0.5 # no single task can use more than half the day's budget
+BUFFER = 0.85 # only schedule to 85% of the energy capacity to built-in headroom against overcommitment
+CAP_FRICTION = 0.75 # no single task can use more than 75% the day's budget
 DAY_HOURS = 14 # scheduling time window, 7am - 9pm 
 
 class Task:
@@ -48,7 +48,7 @@ class Block:
     the user expects to have during it, how much capacity (work it can hold in the time slot), how much remaining room 
     is still left in the slot of time, and tracks which tasks have been assigned to the schedule so far.
     """
-    def __init__(self, label, energy_level, capacity=1):
+    def __init__(self, label, energy_level):
         self.label = label
         self.energy_level = energy_level 
         self.assigned = []  # list of assigned tasks scheduled in this block
@@ -101,10 +101,6 @@ def daily_energy_budget(self_reported_energy):
     """
     fraction = self_reported_energy.energy / 5  # scale to 0-1. """
     return max(0, round(FULL_DAY_BUDGET * fraction * BUFFER))  # scale to 0-18 and reduce to 80% for headroom
-
-    # physical_energy = sum(block.remaining for block in work_slots) # how much of my physical capacity should you actually use today
-    # scaled_energy = (self_reported_energy / 5) * 0.6 # Energy scale is 1-5 rating based on Fatigue Assessment Scale (FAS); 0.6 is the weight for energy
-    # return max(0, round(physical_energy * scaled_energy)) # return the energy budget for the day, whole integer
 
 def energy_fit(task, block):
     """
@@ -205,7 +201,7 @@ def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, 
     print("╰" + "─" * W + "╯")
 
     # --- time-ordered agenda (walk blocks in order) ---
-    print("\n  🕐  YOUR DAY (in order)")
+    print("\n  🕐  YOUR SCHEDULE TODAY (in order)")
     print("  " + "─" * (W - 2))
     for block in work_blocks:
         if block.assigned:

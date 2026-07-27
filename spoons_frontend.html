@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spoons</title>
+
+  <style>
+    /* --- CSS styling goes here
+    */
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        max-width: fit-content;
+        margin: 40px auto;
+        padding: 0 16px
+    }
+    button { padding: 8px 16px; cursor: pointer; }
+    #output { margin-top: 24px; white-space: pre-wrap;}
+  </style>
+
+  <body>
+    <h1> Spoons </h1>
+    <!-- ---- INPUTS: your energy check-in and task fields go here ---- -->
+  <label>
+    Energy today (1–5):
+    <input type="number" id="energy" min="1" max="5" value="3">
+  </label>
+
+  <!-- ---- BUTTON: triggers the scheduler ---- -->
+  <button onclick="plan()">Plan my day</button>
+
+  <!-- ---- OUTPUT: where the schedule prints ---- -->
+  <div id="output"></div>
+
+  <script>
+    // ---- your JavaScript (the logic) goes here ----
+
+    // This function runs when the button is clicked.
+    function plan() {
+      // 1. READ input from the page:
+      const energy = Number(document.getElementById("energy").value);
+
+      // 2. DO your logic here (this is where your scheduler goes):
+      const result = "You entered energy: " + energy;
+
+      // 3. WRITE output back to the page:
+      document.getElementById("output").textContent = result;
+    }
+  </script>
+</body>
+</html>
+  </body>
