@@ -90,7 +90,7 @@ def get_tasks_from_user():
 def daily_energy_budget(self_reported_energy):
     """
    Convert the 1-5 energy rating into a spendable budget, scaled to a real
-    best-day load (18) and reduced to 80% so the plan always leaves headroom.
+    best-day load (18) and reduced to 85% so the plan always leaves headroom.
 
     Vars: fraction is a number bewteen 0 and 1 representing what portion of a full day's energy you have today.
     Ex:
