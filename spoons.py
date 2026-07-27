@@ -249,6 +249,7 @@ if __name__ == "__main__":
     if not backlog_of_tasks:
         print("\nNo more tasks to do! Yay enjoy your freetime. Goodbye!")
 
+    # Hardcoded values based on my own levels on a typical day, regardless of energy.
     else:
         today_time_blocks = [
             Block("Morning", energy_level=5),
@@ -263,11 +264,10 @@ if __name__ == "__main__":
     print_daily_schedule("Today", 0, today_time_blocks, scheduled, leftover, budget,
                             checkin_today, warnings)
 
-
     # Anything still unscheduled after both days.
-    if backlog_of_tasks:
+    if leftover:
         print("Still not scheduled after 2 days:")
-        for task in backlog_of_tasks:
+        for task in leftover:
             print(f"  - {task.name} (deferred {task.days_deferred}d)")
 
 
