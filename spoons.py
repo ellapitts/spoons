@@ -124,6 +124,7 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
     deadline_warnings = [] # list collecting overflow tasks passed their deadline. 
 
     # Deadline check: flag any task that's past its due date and add it to the deadline_warnings list. This is done before scheduling to ensure that any tasks that are overdue are flagged for the user.
+    ''' While loop runs O(n) times to schedule one task per pass and removes it from the remaining tasks list.'''
     for task in remaining_tasks:
         if task.deadline_day is not None and task.deadline_day < day_index:
             deadline_warnings.append(task)
@@ -144,6 +145,9 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
 
         # A task is eligible if it fits remaining energy AND remaining time,
         # and (unless it's promoted) is under the per-task cap.
+        '''Every pass here, it rebuilds and sorts the eligible list. this sorting is in O(nlgn) for comparison based sorting.
+        We need to scan 3 blocks n times, but this negs dominated by the O(nlgn) asymptotic time.
+        Multiplying the outer loop with the inner loop, we get O(n * nlgn) = O(n^2lgn)'''
         eligable_task = []
         for task in remaining_tasks:
             if task.energy_required > energy_left:
@@ -157,7 +161,6 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
 
         if not eligable_task:
             break  # no more tasks can fit, so stop scheduling
-
 
         # Sort eligable remaining by promotion-then-priority key. Highest priority tasks will be at the front of the list.
         eligable_task.sort(key=sort_key, reverse=True)
@@ -185,7 +188,7 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
 
     # Defer whatever remaining leftover tasks to the next day, and increment their days_deferred counter. This is done after scheduling to ensure that any tasks that were not scheduled are carried over to the next day and their deferral count is updated.
     for task in remaining_tasks:
-        task.days_deferred += 1 # TODO FIX bug here with the overflow tasks carrying into the next day
+        task.days_deferred += 1
     return scheduled, remaining_tasks, budget, deadline_warnings # hands back your schedule of the day, remaining tasks, energy budget, and any deadline warnings for the day.
 
 def print_daily_schedule(day_name, day_index, work_blocks, scheduled, leftover, budget,
