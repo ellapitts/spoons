@@ -131,9 +131,10 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
 
     # Ranks promoted tasks (aged past threshold) first, then by priority
     def sort_key(task):
+        # handles promoting the task
         promoted = 1 # put off by 1 day
         if task.days_deferred >= PROMOTION_THRESHOLD:
-            promoted = 2  # promote to higher priority if deferred too long. Max priority is 2, so this will make it the highest priority task to schedule next.
+            promoted = 2  # promote to higher priority if deferred too long. 2 is arbitrary tag to mark which task is bigger.
         else: 
             promoted = 0 # normal priority if not promoted 
         return (promoted, task.priority)
