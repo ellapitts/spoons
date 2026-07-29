@@ -187,6 +187,7 @@ def schedule_one_day(day_index, work_blocks, candidate_tasks, self_reported_ener
         remaining_tasks.remove(best)
 
     # Defer whatever remaining leftover tasks to the next day, and increment their days_deferred counter. This is done after scheduling to ensure that any tasks that were not scheduled are carried over to the next day and their deferral count is updated.
+    # This handles the aging and promotion 
     for task in remaining_tasks:
         task.days_deferred += 1
     return scheduled, remaining_tasks, budget, deadline_warnings # hands back your schedule of the day, remaining tasks, energy budget, and any deadline warnings for the day.
